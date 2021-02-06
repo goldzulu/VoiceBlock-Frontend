@@ -6,3 +6,5 @@ yarn.lock
 .firebase
 *.log
 dist
+.cache
+public/*

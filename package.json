@@ -12,8 +12,11 @@
     "test": "npm run lint",
     "serve": "firebase serve",
     "deploy": "firebase deploy",
-    "start:frontend": "parcel public/index.html",
-    "build:frontend": "parcel build public/index.html"
+    "deploy:hosting": "firebase deploy --only hosting",
+    "start:frontend": "parcel src/index.html",
+    "build:frontend": "parcel build src/index.html",
+    "clean": "rimraf ./dist ./public/",
+    "deploy:frontend": "npm run clean && npm run build:frontend && ncp dist/ public && npm run deploy:hosting"
   },
   "devDependencies": {
     "eslint": "^5.2.0",
@@ -23,5 +26,8 @@
   },
   "dependencies": {
     "colyseus.js": "^0.14.1"
-  }
+  },
+  "exclude": [
+    "./frontend"
+  ]
 }

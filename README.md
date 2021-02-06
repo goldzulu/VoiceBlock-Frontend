@@ -1,6 +1,10 @@
-# Actions on Google: Interactive Canvas Sample
+# VoiceBlock - A multiplayer voice game Google Action and Interactive Canvas
 
-This sample demonstrates Interactive Canvas for Google Assistant Actions.
+Follow along the live coding on twitch at https://twitch.tv/goldzulu on most Thursdays and Fridays
+
+This repository contains the voice and frontend (interactive canvas portion of the game)
+
+Th game uses Interactive Canvas for Google Assistant Actions.
 
 ### Prerequisites
 1. Node.js and NPM
