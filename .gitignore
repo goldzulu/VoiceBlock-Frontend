@@ -7,5 +7,5 @@ yarn.lock
 *.log
 dist
 .cache
-public/*
+public/
 src/config.ts
