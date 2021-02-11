@@ -5,6 +5,7 @@ import {Position} from "./common/rooms/schema/Position";
 import {Client, Room} from "colyseus.js";
 import {GameState} from "./common/rooms/schema/GameState";
 import {DOWN, LEFT, RIGHT} from "./common/messages/movement";
+import { NOT_READY, READY } from "./common/messages/readystate";
 
 // may need to build config.ts with exported const
 // set VOICEBLOCK_SERVER in confif.ts to url of backend colyseus server
@@ -15,6 +16,9 @@ const queryBoardElement = () => <HTMLDivElement>document.querySelector("#board")
 const queryPreviewElement = () => <HTMLDivElement>document.querySelector("#preview");
 const queryLevelElement = () => <HTMLDivElement>document.querySelector("#level");
 const queryScoreElement = () => <HTMLDivElement>document.querySelector("#score");
+const queryReadyModal = () => <HTMLDivElement>document.querySelector("#ready-modal");
+const queryReadyButton = () => <HTMLDivElement>document.querySelector("#ready");
+const queryNotReadyButton = () => <HTMLDivElement>document.querySelector("#not-ready");
 
 const clearBoard = () => {
     const boardElement = queryBoardElement();
@@ -103,30 +107,50 @@ const drawScore = (score: number) => {
     scoreElement.textContent = `${score}`;
 }
 
+const renderGame = (state: GameState) => {
+    clearBoard();
+    clearPreview();
+    drawBoard(state.board);
+    drawPreview(state.nextBlock);
+    drawVoiceBlock(state.currentBlock, state.currentPosition);
+    drawScore(state.totalPoints);
+    drawLevel(state.level);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const client = new Client(VOICEBLOCK_SERVER !=='' ? VOICEBLOCK_SERVER : 'ws://localhost:2567');
 
-    const room: Room<GameState> = await client.joinOrCreate<GameState>("voiceblock").then(room => {
-        document.addEventListener('keydown', (ev: KeyboardEvent) => {
-            if (ev.code === "Space") {
+    const room: Room<GameState> = await client.joinOrCreate<GameState>("voiceblock");
+
+    const handleInput = (ev: KeyboardEvent) => {
+        if (ev.code === "Space") {
                 room.send("rotate", {});
-            } else if (ev.code === "ArrowLeft") {
+        } else if (ev.code === "ArrowLeft") {
                 room.send("move", LEFT);
-            } else if (ev.code === "ArrowRight") {
+        } else if (ev.code === "ArrowRight") {
                 room.send("move", RIGHT);
-            } else if (ev.code === "ArrowDown") {
+        } else if (ev.code === "ArrowDown") {
                 room.send("move", DOWN);
-            }
-        })
-        return room;
-    });
+        }
+    }
+        
+
+    const readyModal = queryReadyModal();
+    const readyButton = queryReadyButton();
+    const notReadyButton = queryNotReadyButton();
+
+    readyButton.addEventListener("click", () => room.send("ready", READY));
+    notReadyButton.addEventListener("click", () => room.send("ready", NOT_READY));
+
     room.onStateChange((newState: GameState) => {
-        clearBoard();
-        clearPreview();
-        drawBoard(newState.board);
-        drawPreview(newState.nextBlock);
-        drawVoiceBlock(newState.currentBlock, newState.currentPosition);
-        drawScore(newState.totalPoints);
-        drawLevel(newState.level);
+        if (newState.running) {
+            if (!(typeof document.onkeydown === "function")) {
+                document.addEventListener('keydown', handleInput);
+            }
+            readyModal.style.display = "none";
+            renderGame(newState);
+        } else {
+            document.removeEventListener('keydown', handleInput)
+        }
     });
 });
